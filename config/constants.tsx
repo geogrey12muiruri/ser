@@ -22,9 +22,9 @@ export const onBoardingSlides: onBoardingSlidingTypes[] = [
         }}
       />
     ),
-    secondTitle: "Our Community",
+    description: "Medplus Supat",
     subTitle:
-      "Find the perfect course to enhance your career prospects and skill set",
+      "Access to Professional Medical Practitioners for your health needs",
   },
   {
     color: "#A7F893",
@@ -38,9 +38,9 @@ export const onBoardingSlides: onBoardingSlidingTypes[] = [
         }}
       />
     ),
-    secondTitle: "Own Goal",
+    description: "Easy Schedule",
     subTitle:
-      "Personalize your study plan with flexible timelines that suit you best",
+      "Be on controll of your tasks and appointments with our easy scheduling system",
   },
   {
     color: "#FFC0CB",
@@ -53,10 +53,10 @@ export const onBoardingSlides: onBoardingSlidingTypes[] = [
         }}
       />
     ),
-    title: "Complete full",
-    secondTitle: "Course",
+    title: "We Give you more",
+    description: "Bridgin Health",
     subTitle:
-      "Achieve certification by completing courses with dedicated effort",
+      "Get started today to get more personalized insights on your health",
   },
 ];
 

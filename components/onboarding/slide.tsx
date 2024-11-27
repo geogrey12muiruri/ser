@@ -86,7 +86,7 @@ import {
                   fontFamily: "Poppins_600SemiBold",
                 }}
               >
-                {slide.secondTitle}
+                {slide.description}
               </Text>
               <Text
                 style={{
