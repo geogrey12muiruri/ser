@@ -12,7 +12,7 @@ import { IsIPAD } from "@/theme/app.constant";
 export const onBoardingSlides: onBoardingSlidingTypes[] = [
   {
     color: "#40E0D0",
-    title: "Explore",
+    title: "Welcome to MedPlus",
     image: (
       <Image
         source={One}
@@ -22,9 +22,9 @@ export const onBoardingSlides: onBoardingSlidingTypes[] = [
         }}
       />
     ),
-    description: "Medplus Supat",
+    description: "Bridging Health",
     subTitle:
-      "Access to Professional Medical Practitioners for your health needs",
+      "Embark on a journey to wellness with access to top-tier health professionals at your fingertips.",
   },
   {
     color: "#A7F893",
@@ -40,7 +40,7 @@ export const onBoardingSlides: onBoardingSlidingTypes[] = [
     ),
     description: "Easy Schedule",
     subTitle:
-      "Be on controll of your tasks and appointments with our easy scheduling system",
+      "Effortlessly manage your consultations with our intuitive scheduling system, designed for both patients and professionals.",
   },
   {
     color: "#FFC0CB",
@@ -53,10 +53,10 @@ export const onBoardingSlides: onBoardingSlidingTypes[] = [
         }}
       />
     ),
-    title: "We Give you more",
-    description: "Bridgin Health",
+    title: "Your Health Journey",
+    description: "",
     subTitle:
-      "Get started today to get more personalized insights on your health",
+      "Keep your health records close and your care personalized as you navigate your path to better health with MedPlus.",
   },
 ];
 
@@ -78,7 +78,7 @@ export const RIGHT_SNAP_POINTS = [NEXT, WIDTH - MARGIN_WIDTH];
 export const bannerData = [
   {
     image:
-      "https://res.cloudinary.com/dkg6jv4l0/image/upload/v1729365053/WhatsApp_Image_2024-09-02_at_2.07.32_PM_kb1mwe.jpg",
+      "https://res.cloudinary.com/dws2bgxg4/image/upload/v1732089208/medplus/qsed9b2jolllobsxdlpz.jpg",
     url: "https://react-native.becodemy.com",
   },
   {
