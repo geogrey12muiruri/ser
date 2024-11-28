@@ -1,23 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import React, { useContext, useEffect, useState } from 'react';
 import { Redirect } from 'expo-router';
+import { AuthContext } from '../context/AuthContext';
 
 export default function Index() {
-  const [loggedInUser, setLoggedInUser] = useState(false);
+  const { user } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchToken = async () => {
-      try {
-        const token = await SecureStore.getItemAsync('accessToken');
-        setLoggedInUser(!!token);
-      } catch (error) {
-        console.error('Failed to fetch the token', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchToken();
+    // Simulate loading time
+    setTimeout(() => setLoading(false), 1000);
   }, []);
 
   return (
@@ -25,7 +16,7 @@ export default function Index() {
       {loading ? (
         <></>
       ) : (
-        <Redirect href={!loggedInUser ? '/(routes)/onboarding' : '/(tabs)'} />
+        <Redirect href={!user ? '/(routes)/onboarding' : '/(tabs)'} />
       )}
     </>
   );

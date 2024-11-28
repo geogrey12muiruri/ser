@@ -45,7 +45,7 @@ export default function AuthModal(): JSX.Element {
         >
           <Pressable>
             <Image
-              source={require("@/assets/images/onboarding/google.png")}
+              source={require("@/assets/images/icons/google.png")}
               style={{
                 width: windowWidth(40),
                 height: windowHeight(40),

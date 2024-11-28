@@ -9,8 +9,10 @@ import {
   Poppins_500Medium,
   useFonts,
 } from "@expo-google-fonts/poppins"
-
-
+import { Provider } from 'react-redux';
+import { store } from './store/configureStore';
+import { AuthProvider } from '../context/AuthContext';
+import { fontSizes } from '../theme/app.constant';
 
 export default function _layout() {
   const [loaded] = useFonts({
@@ -23,12 +25,16 @@ export default function _layout() {
   })
 
   return (
-    <ThemeProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(routes)/onboarding/index" />
-        
-      </Stack>
-    </ThemeProvider>
+    <Provider store={store}>
+      <AuthProvider>
+        <ThemeProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(routes)/onboarding/index" />
+            <Stack.Screen name="register" options={{ title: 'Register', headerShown: true }} />
+          </Stack>
+        </ThemeProvider>
+      </AuthProvider>
+    </Provider>
   )
 }

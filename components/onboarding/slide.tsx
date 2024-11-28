@@ -20,6 +20,7 @@ import {
   import { LinearGradient } from "expo-linear-gradient";
   import { Ionicons } from "@expo/vector-icons";
   import AuthModal from "../auth/auth.modal";
+  import { useRouter } from 'expo-router';
   
   export default function Slide({
     slide,
@@ -33,10 +34,11 @@ import {
     totalSlides: number;
   }) {
     const [modalVisible, setModalVisible] = useState(false);
+    const router = useRouter();
   
     const handlePress = (index: number, setIndex: (index: number) => void) => {
       if (index === 2) {
-        setModalVisible(true);
+        router.push('/register'); // Navigate to the login screen
       } else {
         setIndex(index + 1);
       }

@@ -15,7 +15,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.parroti.deploy"
     },
     "plugins": [
       [
@@ -24,6 +25,11 @@
           "configureAndroidBackup": true
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "23e0f68a-f466-4bfa-a76a-0a76beb946c8"
+      }
+    }
   }
 }
