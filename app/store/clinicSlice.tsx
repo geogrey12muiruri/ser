@@ -79,7 +79,11 @@ const fetchFreshClinics = async () => {
 
 export const fetchClinics = createAsyncThunk(
   'clinics/fetchClinics',
-  async (_, { dispatch }) => {
+  async (_, { dispatch, getState }) => {
+    const state = getState() as RootState;
+    if (state.clinics.clinicList.length > 0) {
+      return state.clinics.clinicList;
+    }
     const cachedClinics = await AsyncStorage.getItem('clinicList');
     if (cachedClinics) {
       const parsedClinics = JSON.parse(cachedClinics);
