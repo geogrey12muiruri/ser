@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { RootState } from '../store/configureStore';
@@ -48,6 +48,7 @@ interface ClinicsState {
   clinicList: Clinic[];
   filteredClinicList: Clinic[];
   selectedClinic: Clinic | null;
+  clinicImages: { [key: string]: string[] }; // Add this line to store clinic images
   loading: boolean;
   error: string | null;
 }
@@ -56,6 +57,7 @@ const initialState: ClinicsState = {
   clinicList: [],
   filteredClinicList: [],
   selectedClinic: null,
+  clinicImages: {}, // Initialize clinicImages
   loading: false,
   error: null,
 };
@@ -79,7 +81,7 @@ const fetchFreshClinics = async () => {
 
 export const fetchClinics = createAsyncThunk(
   'clinics/fetchClinics',
-  async (_, { dispatch, getState }) => {
+  async (_, { getState }) => {
     const state = getState() as RootState;
     if (state.clinics.clinicList.length > 0) {
       return state.clinics.clinicList;
@@ -145,6 +147,16 @@ const clinicsSlice = createSlice({
   name: 'clinics',
   initialState,
   reducers: {
+    setClinics: (state, action: PayloadAction<Clinic[]>) => {
+      state.clinicList = action.payload;
+      state.filteredClinicList = action.payload;
+    },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.loading = action.payload;
+    },
+    setError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
     filterClinics: (state, action: PayloadAction<{ searchQuery: string }>) => {
       const { searchQuery } = action.payload;
       let filtered = state.clinicList;
@@ -169,6 +181,9 @@ const clinicsSlice = createSlice({
     },
     setSelectedClinic: (state, action: PayloadAction<Clinic>) => {
       state.selectedClinic = action.payload;
+    },
+    setClinicImages: (state, action: PayloadAction<{ clinicId: string, images: string[] }>) => {
+      state.clinicImages[action.payload.clinicId] = action.payload.images;
     },
   },
   extraReducers: (builder) => {
@@ -214,22 +229,44 @@ const clinicsSlice = createSlice({
   },
 });
 
-export const { filterClinics, clearSelectedClinic, resetClinics, setSelectedClinic } = clinicsSlice.actions;
+export const { setClinics, setLoading, setError, filterClinics, clearSelectedClinic, resetClinics, setSelectedClinic, setClinicImages } = clinicsSlice.actions;
 
-export const selectClinics = (state: RootState) => state.clinics.filteredClinicList;
-export const selectAllClinics = (state: RootState) => state.clinics.clinicList;
-export const selectClinicDetails = (state: RootState) => state.clinics.selectedClinic;
-export const selectClinicLoading = (state: RootState) => state.clinics.loading;
-export const selectClinicError = (state: RootState) => state.clinics.error;
+export const selectClinics = createSelector(
+  (state: RootState) => state.clinics.filteredClinicList,
+  (filteredClinicList) => filteredClinicList
+);
 
-export const selectSpecialties = (state: RootState) => {
-  const specialtiesSet = new Set<string>();
-  state.clinics.clinicList.forEach(clinic => {
-    if (clinic.specialties) {
-      clinic.specialties.split(',').forEach(specialty => specialtiesSet.add(specialty.trim()));
-    }
-  });
-  return Array.from(specialtiesSet);
-};
+export const selectAllClinics = createSelector(
+  (state: RootState) => state.clinics.clinicList,
+  (clinicList) => clinicList
+);
+
+export const selectClinicDetails = createSelector(
+  (state: RootState) => state.clinics.selectedClinic,
+  (selectedClinic) => selectedClinic
+);
+
+export const selectClinicLoading = createSelector(
+  (state: RootState) => state.clinics.loading,
+  (loading) => loading
+);
+
+export const selectClinicError = createSelector(
+  (state: RootState) => state.clinics.error,
+  (error) => error
+);
+
+export const selectSpecialties = createSelector(
+  (state: RootState) => state.clinics.clinicList,
+  (clinicList) => {
+    const specialtiesSet = new Set<string>();
+    clinicList.forEach(clinic => {
+      if (clinic.specialties) {
+        clinic.specialties.split(',').forEach(specialty => specialtiesSet.add(specialty.trim()));
+      }
+    });
+    return Array.from(specialtiesSet);
+  }
+);
 
 export default clinicsSlice.reducer;

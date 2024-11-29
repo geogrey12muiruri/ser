@@ -17,6 +17,7 @@ import {
   selectClinics,
   clearClinics,
   setSelectedClinic, // Import the setSelectedClinic action
+  fetchClinicImages, // Import the new action
 } from '../../app/store/clinicSlice';
 import SubHeading from '../dashboard/SubHeading';
 import Colors from '../Shared/Colors';
@@ -32,12 +33,14 @@ import {
   Poppins_500Medium,
   useFonts,
 } from "@expo-google-fonts/poppins";
+import useFetchClinics from '../../hooks/useFetchClinics';
 
 SplashScreen.preventAutoHideAsync();
 
 const Clinics = ({ searchQuery, onViewAll }) => {
   const router = useRouter();
   const dispatch = useDispatch();
+  const { clinics, getClinicImages } = useFetchClinics();
 
   const [fontsLoaded] = useFonts({
     Poppins_600SemiBold,
@@ -49,11 +52,9 @@ const Clinics = ({ searchQuery, onViewAll }) => {
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const { filteredClinicList, loading, error } = useSelector(state => ({
-    filteredClinicList: selectClinics(state),
-    loading: state.clinics.loading,
-    error: state.clinics.error,
-  }));
+  const filteredClinicList = useSelector(selectClinics);
+  const loading = useSelector(state => state.clinics.loading);
+  const error = useSelector(state => state.clinics.error);
 
   useEffect(() => {
     if (fontsLoaded) {
@@ -62,8 +63,10 @@ const Clinics = ({ searchQuery, onViewAll }) => {
   }, [fontsLoaded]);
 
   useEffect(() => {
-    dispatch(fetchClinics());
-  }, [dispatch]);
+    if (filteredClinicList.length === 0) {
+      dispatch(fetchClinics());
+    }
+  }, [dispatch, filteredClinicList.length]);
 
   useEffect(() => {
     if (searchQuery) {
@@ -101,51 +104,38 @@ const Clinics = ({ searchQuery, onViewAll }) => {
   const ClinicItem = ({ item }) => {
     const [currentImage, setCurrentImage] = useState(null);
     const imageFadeAnim = useRef(new Animated.Value(1)).current;
+    const clinicImages = useSelector(state => (state.clinics.clinicImages || {})[item._id] || []);
 
     useEffect(() => {
       const fetchImages = async () => {
         try {
-          const professionalImages = await Promise.all(
-            item.professionals.map(async (professional) => {
-              const response = await axios.get(`https://medplus-health.onrender.com/api/images/professional/${professional._id}`);
-              return response.data.map(image => image.urls[0]);
-            })
-          );
-          const allImages = new Set(item.images || []);
-          professionalImages.flat().forEach(url => allImages.add(url));
-          const imageArray = Array.from(allImages);
-          
-          console.log('Fetched clinic images:', imageArray); // Log the fetched images
+          if (clinicImages.length === 0) {
+            const images = await getClinicImages(item);
+            setCurrentImage(images[0]);
+          } else {
+            setCurrentImage(clinicImages[0]);
+          }
 
-          if (imageArray.length > 0) {
-            // Pre-fetch images
-            await Promise.all(imageArray.map(url => Image.prefetch(url)));
+          if (clinicImages.length > 1) {
+            let imageIndex = 0;
+            const interval = setInterval(() => {
+              imageIndex = (imageIndex + 1) % clinicImages.length;
 
-            setCurrentImage(imageArray[0]);
-
-            if (imageArray.length > 1) {
-              let imageIndex = 0;
-              const interval = setInterval(() => {
-                imageIndex = (imageIndex + 1) % imageArray.length;
-
+              Animated.timing(imageFadeAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+              }).start(() => {
+                setCurrentImage(clinicImages[imageIndex]);
                 Animated.timing(imageFadeAnim, {
-                  toValue: 0,
+                  toValue: 1,
                   duration: 300,
                   useNativeDriver: true,
-                }).start(() => {
-                  setCurrentImage(imageArray[imageIndex]);
-                  Animated.timing(imageFadeAnim, {
-                    toValue: 1,
-                    duration: 300,
-                    useNativeDriver: true,
-                  }).start();
-                });
-              }, 10000);
+                }).start();
+              });
+            }, 10000);
 
-              return () => clearInterval(interval);
-            }
-          } else {
-            setCurrentImage(null);
+            return () => clearInterval(interval);
           }
         } catch (error) {
           console.error('Error fetching images:', error);
@@ -153,7 +143,7 @@ const Clinics = ({ searchQuery, onViewAll }) => {
       };
 
       fetchImages();
-    }, [item.images, item.professionals]);
+    }, [clinicImages, getClinicImages, item, imageFadeAnim]);
 
     return (
       <TouchableOpacity style={styles.clinicItem} onPress={() => handlePress(item)}>

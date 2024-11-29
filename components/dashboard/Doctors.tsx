@@ -9,6 +9,7 @@ import { fetchClinics, selectClinics } from '../../app/store/clinicSlice';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
+import useFetchClinics from '../../hooks/useFetchClinics';
 
 interface Doctor {
   _id: string;
@@ -30,7 +31,7 @@ interface DoctorsProps {
 
 const Doctors: React.FC<DoctorsProps> = ({ searchQuery, selectedCategory, onViewAll, excludeDoctorId }) => {
   const dispatch = useDispatch();
-  const clinics = useSelector(selectClinics);
+  const { clinics } = useFetchClinics(); // Destructure clinics from useFetchClinics
   const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
   const navigation = useNavigation();
   const router = useRouter();
@@ -38,8 +39,15 @@ const Doctors: React.FC<DoctorsProps> = ({ searchQuery, selectedCategory, onView
   const [distanceThreshold, setDistanceThreshold] = useState<number>(10); // Distance threshold in kilometers
 
   useEffect(() => {
-    dispatch(fetchClinics());
-  }, [dispatch]);
+    if (!Array.isArray(clinics)) {
+      console.error('Clinics is not an array:', clinics);
+      return;
+    }
+
+    if (clinics.length === 0) {
+      dispatch(fetchClinics());
+    }
+  }, [dispatch, clinics]);
 
   useEffect(() => {
     const getUserLocation = async () => {
@@ -82,6 +90,11 @@ const Doctors: React.FC<DoctorsProps> = ({ searchQuery, selectedCategory, onView
   };
 
   const filterDoctors = () => {
+    if (!Array.isArray(clinics)) {
+      console.error('Clinics is not an array:', clinics);
+      return;
+    }
+
     let doctors = clinics.flatMap(clinic => 
       clinic.professionals.map(professional => ({
         ...professional,
@@ -140,7 +153,7 @@ const Doctors: React.FC<DoctorsProps> = ({ searchQuery, selectedCategory, onView
     navigation.navigate('doctor/index', params);
   };
 
-  if (!clinics.length) {
+  if (!Array.isArray(clinics) || clinics.length === 0) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.PRIMARY} />

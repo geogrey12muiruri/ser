@@ -1,50 +1,253 @@
-# Welcome to your Expo app 👋
+import React, { useEffect, useState, useRef } from 'react';
+import {
+  View,
+  FlatList,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Animated,
+  Button,
+  Image,
+} from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchClinics,
+  filterClinics,
+  selectClinics,
+  clearClinics,
+  setSelectedClinic, // Import the setSelectedClinic action
+  fetchClinicImages, // Import the new action
+} from '../../app/store/clinicSlice';
+import SubHeading from '../dashboard/SubHeading';
+import Colors from '../Shared/Colors';
+import * as SplashScreen from 'expo-splash-screen';
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+import { useRouter } from 'expo-router';
+import axios from 'axios';
+import {
+  Poppins_600SemiBold,
+  Poppins_300Light,
+  Poppins_400Regular,
+  Poppins_700Bold,
+  Poppins_500Medium,
+  useFonts,
+} from "@expo-google-fonts/poppins";
+import useFetchClinics from '../../hooks/useFetchClinics';
 
-## Get started
+SplashScreen.preventAutoHideAsync();
 
-1. Install dependencies
+const Clinics = ({ searchQuery, onViewAll }) => {
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const clinics = useFetchClinics();
 
-   ```bash
-   npm install
-   ```
+  const [fontsLoaded] = useFonts({
+    Poppins_600SemiBold,
+    Poppins_300Light,
+    Poppins_700Bold,
+    Poppins_400Regular,
+    Poppins_500Medium,
+  });
 
-2. Start the app
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
-   ```bash
-    npx expo start
-   ```
+  const { filteredClinicList, loading, error } = useSelector(state => ({
+    filteredClinicList: selectClinics(state),
+    loading: state.clinics.loading,
+    error: state.clinics.error,
+  }));
 
-In the output, you'll find options to open the app in a
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+  useEffect(() => {
+    if (filteredClinicList.length === 0) {
+      dispatch(fetchClinics());
+    }
+  }, [dispatch, filteredClinicList.length]);
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+  useEffect(() => {
+    if (searchQuery) {
+      dispatch(filterClinics({ searchQuery }));
+    }
+  }, [searchQuery, dispatch]);
 
-## Get a fresh project
+  useEffect(() => {
+    if (!loading && filteredClinicList.length > 0) {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [loading, filteredClinicList]);
 
-When you're ready, run:
+  const handlePress = item => {
+    const professionalImages = item.professionals.flatMap(professional => professional.clinic_images || []);
+    const allImages = [...new Set([...item.images, ...professionalImages.map(image => image.urls[0])])];
+    
+    console.log('Navigating to clinic with images:', allImages); // Add this line to log the images being passed
 
-```bash
-npm run reset-project
-```
+    dispatch(setSelectedClinic({ ...item, images: allImages })); // Set the selected clinic in the Redux state
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+    router.push({
+      pathname: `/hospital/book-appointment/${item._id}`,
+    });
+  };
 
-## Learn more
+  // const handleResetClinics = () => {
+  //   dispatch(clearClinics());
+  // };
 
-To learn more about developing your project with Expo, look at the following resources:
+  const ClinicItem = ({ item }) => {
+    const [currentImage, setCurrentImage] = useState(null);
+    const imageFadeAnim = useRef(new Animated.Value(1)).current;
+    const clinicImages = useSelector(state => (state.clinics.clinicImages || {})[item._id] || []); // Ensure clinicImages is an array
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+    useEffect(() => {
+      const fetchImages = async () => {
+        try {
+          if (!clinicImages || clinicImages.length === 0) {
+            const images = await dispatch(fetchClinicImages(item._id)).unwrap();
+            setCurrentImage(images[0]);
+          } else {
+            setCurrentImage(clinicImages[0]);
+          }
 
-## Join the community
+          if (clinicImages && clinicImages.length > 1) {
+            let imageIndex = 0;
+            const interval = setInterval(() => {
+              imageIndex = (imageIndex + 1) % clinicImages.length;
 
-Join our community of developers creating universal apps.
+              Animated.timing(imageFadeAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+              }).start(() => {
+                setCurrentImage(clinicImages[imageIndex]);
+                Animated.timing(imageFadeAnim, {
+                  toValue: 1,
+                  duration: 300,
+                  useNativeDriver: true,
+                }).start();
+              });
+            }, 10000);
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+            return () => clearInterval(interval);
+          }
+        } catch (error) {
+          console.error('Error fetching images:', error);
+        }
+      };
+
+      fetchImages();
+    }, [clinicImages, dispatch, item._id, imageFadeAnim]);
+
+    return (
+      <TouchableOpacity style={styles.clinicItem} onPress={() => handlePress(item)}>
+        {currentImage ? (
+          <Animated.Image
+            source={{ uri: currentImage }}
+            style={[styles.clinicImage, { opacity: imageFadeAnim }]}
+          />
+        ) : (
+          <Animated.Image
+            source={{ uri: 'https://via.placeholder.com/200x100?text=No+Image' }}
+            style={styles.clinicImage}
+          />
+        )}
+        <View style={styles.textContainer}>
+          <Text style={styles.clinicName} numberOfLines={1}>{item.name}</Text>
+          <Text style={styles.clinicCategory} numberOfLines={1}>{item.category}</Text>
+          <Text style={styles.clinicAddress} numberOfLines={1}>{item.address}</Text>
+          
+          
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color={Colors.GRAY} />;
+  }
+
+  if (error) {
+    return <Text>{error}</Text>;
+  }
+
+  return (
+    <Animated.View style={{ marginTop: 10, opacity: fadeAnim }}>
+      <SubHeading subHeadingTitle={'Discover Clinics Near You'} onViewAll={onViewAll} />
+      {/* <Button title="Reset Clinics" onPress={handleResetClinics} /> */}
+      <FlatList
+        data={filteredClinicList}
+        horizontal={true}
+        renderItem={({ item }) => <ClinicItem item={item} />}
+        keyExtractor={item => item._id.toString()}
+        showsHorizontalScrollIndicator={false}
+      />
+    </Animated.View>
+  );
+};
+
+const styles = StyleSheet.create({
+  clinicItem: {
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: Colors.LIGHT_GRAY,
+    borderRadius: 10,
+    padding: 10,
+    width: 200,
+  },
+  clinicImage: {
+    width: '100%',
+    height: 100,
+    borderRadius: 10,
+  },
+  textContainer: {
+    marginTop: 5,
+  },
+  clinicName: {
+    fontWeight: 'bold',
+    color: Colors.primary,
+    fontFamily: 'Poppins_700Bold',
+  },
+  clinicAddress: {
+    color: Colors.primary,
+    fontFamily: 'Poppins_400Regular',
+  },
+  clinicCategory: {
+    color: Colors.primary,
+    marginTop: 5,
+    fontFamily: 'Poppins_500Medium',
+  },
+  clinicContact: {
+    color: Colors.primary,
+    marginTop: 5,
+  },
+  clinicSpecialties: {
+    color: Colors.primary,
+    marginTop: 5,
+  },
+  clinicLanguages: {
+    color: Colors.primary,
+    marginTop: 5,
+  },
+  resetButton: {
+    backgroundColor: Colors.primary,
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  resetButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+});
+
+export default Clinics;
