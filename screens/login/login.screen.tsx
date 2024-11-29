@@ -118,171 +118,115 @@ const LoginScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.mainBody}>
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{
-          flex: 1,
-          justifyContent: 'center',
-          alignContent: 'center',
-        }}>
-        <View>
-          <KeyboardAvoidingView enabled>
-            <View style={{ alignItems: 'center' }}>
-              <Image
-                source={{ uri: 'https://example.com/background-image.jpg' }}
-                style={styles.logo}
-              />
-            </View>
-            <Text style={styles.welcomeText}>Welcome Back!</Text>
-            <View style={styles.SectionStyle}>
-              <Icon name="mail-outline" size={20} color="#8b9cb5" style={styles.icon} />
-              <TextInput
-                style={styles.inputStyle}
-                onChangeText={setEmail}
-                placeholder="Enter Email"
-                placeholderTextColor="#8b9cb5"
-                autoCapitalize="none"
-                keyboardType="email-address"
-                returnKeyType="next"
-                onSubmitEditing={() =>
-                  passwordInputRef.current && passwordInputRef.current.focus()
-                }
-                underlineColorAndroid="#f000"
-                blurOnSubmit={false}
-              />
-            </View>
-            <View style={styles.SectionStyle}>
-              <Icon name="lock-closed-outline" size={20} color="#8b9cb5" style={styles.icon} />
-              <TextInput
-                style={styles.inputStyle}
-                onChangeText={setPassword}
-                placeholder="Enter Password"
-                placeholderTextColor="#8b9cb5"
-                keyboardType="default"
-                ref={passwordInputRef}
-                onSubmitEditing={Keyboard.dismiss}
-                blurOnSubmit={false}
-                secureTextEntry={!showPassword}
-                underlineColorAndroid="#f000"
-                returnKeyType="next"
-              />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.iconContainer}>
-                <Icon
-                  name={showPassword ? "eye-outline" : "eye-off-outline"}
-                  size={20}
-                  color="#8b9cb5"
-                />
-              </TouchableOpacity>
-            </View>
-            {errorMessage && (
-              <Text style={styles.errorTextStyle}>
-                {errorMessage}
-              </Text>
-            )}
-            <TouchableOpacity
-              style={styles.buttonStyle}
-              activeOpacity={0.5}
-              onPress={handleLoginPress}
-              disabled={isLoggingIn}>
-              {isLoggingIn ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.buttonTextStyle}>LOGIN</Text>
-              )}
-            </TouchableOpacity>
-            <Text
-              style={styles.registerTextStyle}
-              onPress={() => router.push('/register')}>
-              New Here? Register
-            </Text>
-          </KeyboardAvoidingView>
-        </View>
-      </ScrollView>
+    <View style={styles.container}>
+    <View style={styles.logoContainer}>
+      <Image source={{ uri: 'https://example.com/logo.png' }} style={styles.logo} />
     </View>
+    <Text style={styles.heading}>Welcome Back!</Text>
+    <TextInput
+      style={[styles.input, errorMessage && styles.inputError]}
+      placeholder="Email"
+      onChangeText={setEmail}
+      keyboardType="email-address"
+      autoCapitalize="none"
+    />
+    <View style={styles.passwordContainer}>
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        secureTextEntry={!showPassword}
+        onChangeText={setPassword}
+      />
+      <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeButton}>
+        <Icon name={showPassword ? "eye" : "eye-off"} size={20} color="#333" />
+      </TouchableOpacity>
+    </View>
+    {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+    <TouchableOpacity
+      style={[styles.button, isLoggingIn && styles.buttonDisabled]}
+      onPress={handleLoginPress}
+      disabled={isLoggingIn}
+    >
+      {isLoggingIn ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
+    </TouchableOpacity>
+    <TouchableOpacity onPress={() => router.push('/register')}>
+      <Text style={styles.registerText}>New here? Register</Text>
+    </TouchableOpacity>
+  </View>
+  
   );
 };
 
 export default LoginScreen;
-
 const styles = StyleSheet.create({
-  mainBody: {
+  container: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
-    alignContent: 'center',
+    backgroundColor: '#c5f0a4',
+    paddingHorizontal: 20,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
   logo: {
-    width: '50%',
-    height: windowHeight(100),
+    width: 100,
+    height: 100,
     resizeMode: 'contain',
-    margin: windowHeight(30),
   },
-  welcomeText: {
-    fontSize: fontSizes.FONT24,
+  heading: {
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     textAlign: 'center',
-    marginBottom: windowHeight(20),
+    marginVertical: 20,
+    color: '#333',
   },
-  SectionStyle: {
-    flexDirection: 'row',
-    height: windowHeight(50),
-    marginTop: windowHeight(20),
-    marginLeft: windowWidth(35),
-    marginRight: windowWidth(35),
-    margin: windowHeight(10),
+  input: {
     borderWidth: 1,
-    borderColor: '#dadae8',
-    borderRadius: windowWidth(30),
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    paddingHorizontal: windowWidth(15),
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    fontSize: 16,
+    marginVertical: 10,
+    backgroundColor: '#f9f9f9',
   },
-  buttonStyle: {
-    backgroundColor: '#226b80',
-    borderWidth: 0,
-    color: '#FFFFFF',
-    borderColor: '#226b80',
-    height: windowHeight(50),
-    alignItems: 'center',
-    borderRadius: windowWidth(30),
-    marginLeft: windowWidth(35),
-    marginRight: windowWidth(35),
-    marginTop: windowHeight(20),
-    marginBottom: windowHeight(25),
-    justifyContent: 'center',
+  inputError: {
+    borderColor: 'red',
   },
-  buttonTextStyle: {
-    color: '#FFFFFF',
-    fontSize: fontSizes.FONT16,
+  passwordContainer: {
+    position: 'relative',
   },
-  inputStyle: {
-    flex: 1,
-    color: '#333',
+  eyeButton: {
+    position: 'absolute',
+    right: 15,
+    top: 15,
   },
-  registerTextStyle: {
-    color: '#226b80',
-    textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: fontSizes.FONT14,
-    alignSelf: 'center',
-    padding: windowHeight(10),
-  },
-  errorTextStyle: {
+  errorText: {
     color: 'red',
     textAlign: 'center',
-    fontSize: fontSizes.FONT14,
+    marginTop: 10,
   },
-  icon: {
-    marginRight: windowWidth(10),
+  button: {
+    backgroundColor: '#226b80',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginVertical: 20,
   },
-  iconContainer: {
-    padding: windowWidth(5),
+  buttonDisabled: {
+    backgroundColor: '#b3cde0',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  registerText: {
+    textAlign: 'center',
+    color: '#226b80',
+    fontSize: 14,
+    marginTop: 10,
   },
 });
+
